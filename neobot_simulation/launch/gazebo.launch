@@ -1,0 +1,40 @@
+<launch>
+    <param name="robot_description"     command="$(find xacro)/xacro --inorder '$(find neobot_description)/urdf/neobot.xacro'" />
+    <arg name="description_file"        default="$(find neobot_description)/urdf/neobot.urdf"/>
+
+    <arg name="robot_name"              default="neobot" />
+    <arg name="x"                       default="0.0" />
+    <arg name="y"                       default="0.0" />
+    <arg name="z"                       default="0.0" />
+
+    <arg name="rviz"                    default="false"/>
+    <arg name="use_sim_time"            default="true"/>
+    <arg name="gui"                     default="true"/>
+    <arg name="headless"                default="false"/>
+    <arg name="paused"                  default="false"/>
+
+
+    <!-- this should be only called once on multi-robot simulation -->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <!-- <arg name="world_name" value="$(find neobot_simulation)/worlds/room_maze.world"/> -->
+        <arg name="paused" value="$(arg paused)"/>
+        <arg name="use_sim_time" value="true"/>
+        <arg name="headless" value="$(arg headless)"/>
+    </include>
+
+    <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot -->
+    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" 
+        args="-urdf -x $(arg x) -y $(arg y) -z $(arg z) -model $(arg robot_name) -param robot_description"/>
+
+    <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz"
+        args="-d $(find neobot_description)/rviz/neobot.rviz"
+        output="screen"/>
+
+    <include file="$(find neobot_bringup)/launch/includes/description.launch">
+        <arg name="description_file" value="$(arg description_file)"/>
+    </include>
+
+    <!-- Publish odometry Pose (position and orientation) to robot_pose-->
+    <!-- <node name="robot_pose" pkg="neobot_bringup" type="robot_pose.py" output="screen" required="true"/> -->
+
+</launch>

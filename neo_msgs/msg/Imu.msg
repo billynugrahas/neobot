@@ -1,0 +1,3 @@
+geometry_msgs/Vector3 accel_data
+geometry_msgs/Vector3 gyro_data
+geometry_msgs/Vector3 magneto_data

@@ -1,0 +1,38 @@
+<launch>
+    <arg name="rviz"                        default="false" />
+    <arg name="laser"                       default="lds"/>
+    <arg name="description_file"            default="$(find niagraha_2wd)/urdf/urdf.urdf"/>
+    
+    <!-- Start ROS communication between the robot's computer and Linorobot base -->
+    <node pkg="rosserial_python" name="rosserial_neobot" type="serial_node.py" output="screen">
+        <param name="port" value="/dev/ttyUSB0" />
+        <param name="baud" value="57600" />
+    </node>
+    
+    <include file="$(find neobot_bringup)/launch/includes/description.launch">
+        <arg name="description_file" value="$(arg description_file)"/>
+    </include>
+
+    <!-- IMU Relay and Filter -->
+    <!-- <include file="$(find neobot_bringup)/launch/includes/imu/imu.launch" /> -->
+
+    <!-- Publish Linorobot odometry -->
+    <node pkg="linorobot" name="lino_base_node" type="lino_base_node"/>
+
+    <!-- Publish odometry Pose (position and orientation) to robot_pose-->
+    <!-- <node name="robot_pose" pkg="neobot_bringup" type="robot_pose.py" output="screen" required="true"/> -->
+
+    <!-- Odom-IMU Extended Kalman Filter-->
+    <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization"> 
+        <remap from="odometry/filtered" to="odom" />
+        <rosparam command="load" file="$(find neobot_bringup)/param/ekf/robot_localization-noimu.yaml" />
+    </node>
+
+    <!-- Run Linorobot compatible laser drivers -->
+    <!-- <include file="$(find neobot_bringup)/launch/includes/laser/$(arg laser).launch" /> -->
+    
+    <node if="$(arg rviz)" name="rviz" pkg="rviz" type="rviz"
+        args="-d $(find neobot_description)/rviz/neobot.rviz"
+        output="screen"/>
+        
+</launch>
